@@ -30,6 +30,7 @@ import (
 	"blockbook/bchain/coins/qtum"
 	"blockbook/bchain/coins/ravencoin"
 	"blockbook/bchain/coins/ritocoin"
+        "blockbook/bchain/coins/sin"
 	"blockbook/bchain/coins/unobtanium"
 	"blockbook/bchain/coins/vertcoin"
 	"blockbook/bchain/coins/viacoin"
@@ -76,6 +77,7 @@ func init() {
 	BlockChainFactories["Dogecoin"] = dogecoin.NewDogecoinRPC
 	BlockChainFactories["Vertcoin"] = vertcoin.NewVertcoinRPC
 	BlockChainFactories["Vertcoin Testnet"] = vertcoin.NewVertcoinRPC
+        BlockChainFactories["Sinovate"] = sin.NewSinovateRPC
 	BlockChainFactories["Namecoin"] = namecoin.NewNamecoinRPC
 	BlockChainFactories["Monacoin"] = monacoin.NewMonacoinRPC
 	BlockChainFactories["Monacoin Testnet"] = monacoin.NewMonacoinRPC
