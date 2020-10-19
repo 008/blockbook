@@ -1,13 +1,13 @@
 package unobtanium
 
 import (
-	"blockbook/bchain"
-	"blockbook/bchain/coins/btc"
-	"blockbook/bchain/coins/utils"
 	"bytes"
 
 	"github.com/martinboehm/btcd/wire"
 	"github.com/martinboehm/btcutil/chaincfg"
+	"github.com/trezor/blockbook/bchain"
+	"github.com/trezor/blockbook/bchain/coins/btc"
+	"github.com/trezor/blockbook/bchain/coins/utils"
 )
 
 // magic numbers
@@ -27,11 +27,6 @@ func init() {
 	// Mainnet address encoding magics
 	MainNetParams.PubKeyHashAddrID = []byte{130}
 	MainNetParams.ScriptHashAddrID = []byte{30}
-
-	err := chaincfg.Register(&MainNetParams)
-	if err != nil {
-		panic(err)
-	}
 }
 
 // UnobtaniumParser handle
@@ -44,7 +39,14 @@ func NewUnobtaniumParser(params *chaincfg.Params, c *btc.Configuration) *Unobtan
 	return &UnobtaniumParser{BitcoinParser: btc.NewBitcoinParser(params, c)}
 }
 
+// GetChainParams returns network parameters
 func GetChainParams(chain string) *chaincfg.Params {
+	if !chaincfg.IsRegistered(&MainNetParams) {
+		err := chaincfg.Register(&MainNetParams)
+		if err != nil {
+			panic(err)
+		}
+	}
 	switch chain {
 	default:
 		return &MainNetParams
