@@ -1,8 +1,7 @@
 package coins
 
 import (
- "blockbook/bchain/coins/sin"
-	"context"
+        "blockbook/bchain/coins/sin"	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
