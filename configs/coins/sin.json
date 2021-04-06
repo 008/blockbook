@@ -22,11 +22,11 @@
     "package_name": "backend-sinovate",
     "package_revision": "sinteam-1",
     "system_user": "sinteam",
-    "version": "0.17.1",
-    "binary_url": "https://github.com/SINOVATEblockchain/SIN-core/releases/download/v1.06-0.17.1.0-5778c65/sin-linux64-5778c65.tgz",
+    "version": "1.0.0.2",
+    "binary_url": "https://github.com/SINOVATEblockchain/SIN-core/releases/download/v1.0.0.2/daemon.tar.gz",
     "verification_type": "sha256",
     "verification_source": "https://bitcoin.org/bin/bitcoin-core-0.18.1/SHA256SUMS.asc",
-    "extract_command": "unzip -d backend",
+    "extract_command": "tar -xvf daemon.tar.gz",
     "exclude_files": [
       "bin/sin-qt"
     ],
