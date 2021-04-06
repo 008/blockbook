@@ -1,10 +1,7 @@
+# initialize from the image
+
 FROM debian:9
 
-MAINTAINER crptec.fr@gmail.com
-
-ENV TAG=master
-
-# Install dependencies 
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y build-essential git wget pkg-config lxc-dev libzmq3-dev \
@@ -12,45 +9,45 @@ RUN apt-get update && \
                        liblz4-dev graphviz && \
     apt-get clean
 
-ENV GOLANG_VERSION=go1.10.3.linux-amd64
+ENV GOLANG_VERSION=go1.14.2.linux-amd64
 ENV ROCKSDB_VERSION=v5.18.3
+ENV GOPATH=/go
+ENV PATH=$PATH:$GOPATH/bin
+ENV CGO_CFLAGS="-I/opt/rocksdb/include"
+ENV CGO_LDFLAGS="-L/opt/rocksdb -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4"
 
-USER root
+RUN mkdir /build
 
-ENV HOME=/root
-ENV GOPATH=$HOME/go
-ENV PATH="$PATH:$GOPATH/bin"
-
-# Install go
-RUN cd /opt && wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz && \
-    tar xf go1.10.3.linux-amd64.tar.gz
+# install and configure go
+RUN cd /opt && wget https://dl.google.com/go/$GOLANG_VERSION.tar.gz && \
+    tar xf $GOLANG_VERSION.tar.gz
 RUN ln -s /opt/go/bin/go /usr/bin/go
+RUN mkdir -p $GOPATH
 RUN echo -n "GO version: " && go version
 RUN echo -n "GOPATH: " && echo $GOPATH
 
-# Install go dep
-RUN go get github.com/golang/dep/cmd/dep
+# install rocksdb
+RUN cd /opt && git clone -b $ROCKSDB_VERSION --depth 1 https://github.com/facebook/rocksdb.git
+RUN cd /opt/rocksdb && CFLAGS=-fPIC CXXFLAGS=-fPIC make -j 4 release
+RUN strip /opt/rocksdb/ldb /opt/rocksdb/sst_dump && \
+    cp /opt/rocksdb/ldb /opt/rocksdb/sst_dump /build
 
-# Install RocksDB and the Go wrapper
-RUN cd $HOME && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && CFLAGS=-fPIC CXXFLAGS=-fPIC make release
+# install build tools
+RUN go get github.com/gobuffalo/packr/...
 
-ENV CGO_CFLAGS="-I/$HOME/rocksdb/include"
-ENV CGO_LDFLAGS="-L/$HOME/rocksdb -ldl -lrocksdb -lstdc++ -lm -lz -lbz2 -lsnappy -llz4"
+# download pre-loaded depencencies
+RUN \
+    cleanup() { rm -rf $GOPATH/src/github.com/trezor ; } && \
+    trap cleanup EXIT && \
+    mkdir -p $GOPATH/src/github.com/trezor && \
+    cd $GOPATH/src/github.com/trezor && \
+    git clone https://github.com/trezor/blockbook.git && \
+    cd blockbook && \
+    env GO111MODULE=on go mod vendor && \
+    cp -r vendor /build/vendor
 
-# Install Blockbook
-RUN cd $GOPATH/src && git clone https://github.com/SINOVATEblockchain/blockbook.git && cd blockbook && git checkout $TAG && dep ensure -vendor-only && \
-         BUILDTIME=$(date --iso-8601=seconds); GITCOMMIT=$(git describe --always --dirty); \ 
-         LDFLAGS="-X blockbook/common.version=${TAG} -X blockbook/common.gitcommit=${GITCOMMIT} -X blockbook/common.buildtime=${BUILDTIME}" && \ 
-         go build -ldflags="-s -w ${LDFLAGS}" 
-RUN rm -Rf /go/pkg/dep/sources
- 
-# Copy startup scripts
-COPY launch.sh $HOME
+ADD Makefile /build/Makefile
 
-COPY blockchaincfg.json $HOME
+VOLUME /out
 
-RUN chown 1004:1004 $HOME -R
-
-EXPOSE 9099 9199
-
-ENTRYPOINT $HOME/launch.sh
+WORKDIR /build
