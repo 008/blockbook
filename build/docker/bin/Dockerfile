@@ -1,7 +1,6 @@
-# initialize from the image defined by BASE_IMAGE
-ARG BASE_IMAGE
-FROM $BASE_IMAGE
-ARG DEBIAN_FRONTEND=noninteractive
+# initialize from the image
+
+FROM debian:9
 
 RUN apt-get update && \
     apt-get upgrade -y && \
