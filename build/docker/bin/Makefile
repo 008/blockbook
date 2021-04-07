@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-UPDATE_VENDOR ?= 0
+UPDATE_VENDOR = 0
 VERSION ?= devel
 GITCOMMIT = $(shell cd /src && git describe --always --dirty)
 BUILDTIME = $(shell date --iso-8601=seconds)
